@@ -1,0 +1,21 @@
+[project]
+name = "try-prefect"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-auth>=2.39.0",
+    "gspread-asyncio>=2.0.0",
+    "prefect-client>=3.2.11",
+    "prefect-gcp>=0.6.7",
+    "peewee>=3.17.9",
+    "polars>=1.27.1",
+    "psycopg2>=2.9.10",
+    "prefect-sqlalchemy>=0.5.2",
+]
+
+[dependency-groups]
+dev = [
+    "types-peewee>=3.17.9.20250401",
+]
