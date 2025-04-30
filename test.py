@@ -11,13 +11,13 @@ def extract():
 
 @task
 def transform(data: List[str]):
-    transformed_data = str()
+    transformed_data = "".join(data)
 
     return transformed_data
 
 
 @task(log_prints=True)
-def load(data: List[dict[str, int]]):
+def load(data: str):
     print(data)
 
 
