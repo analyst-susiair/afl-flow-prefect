@@ -121,6 +121,14 @@ if __name__ == "__main__":
             "db_type": "postgres",
         },
         cron="0 0 * * *",
+        job_variables={
+            "pip_packages": [
+                "google-auth",
+                "gspread-asyncio",
+                "peewee>=3.17.9",
+                "psycopg2>=2.9.10",
+            ]
+        },
     )
     # (
     #     year="2025",
