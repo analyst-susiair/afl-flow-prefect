@@ -10,9 +10,7 @@ dependencies = [
     "prefect-client>=3.2.11",
     "prefect-gcp>=0.6.7",
     "peewee>=3.17.9",
-    "polars>=1.27.1",
-    "psycopg2>=2.9.10",
-    "prefect-sqlalchemy>=0.5.2",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [dependency-groups]

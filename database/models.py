@@ -1,5 +1,4 @@
 from peewee import Model, CharField, IntegerField, FloatField, AutoField
-from database.db import generate_db_instance
 
 
 class BaseModel(Model):

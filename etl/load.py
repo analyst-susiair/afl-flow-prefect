@@ -1,5 +1,4 @@
 from typing import List
-import polars as pl
 from database.models import TestFlightLog
 from local_types.data_type import AflDataType
 

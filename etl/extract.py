@@ -1,7 +1,6 @@
 from typing import List
 from sheets import async_get_afl, AFL_YEARS
 import asyncio
-import polars as pl
 from local_types.data_type import AflDataType
 
 
