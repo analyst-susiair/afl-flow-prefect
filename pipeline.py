@@ -7,6 +7,7 @@ from database.models import TestFlightLog
 from utils.db import db_comparison_data, truncate_db
 
 from prefect import flow, task
+from prefect.docker import DockerImage
 # from prefect.logging import get_run_logger
 
 
@@ -96,40 +97,60 @@ def main_pipeline(
 
 
 if __name__ == "__main__":
-    # main_pipeline.serve(
-    #     name="test_afl_pipeline",
-    #     tags=["afl", "test"],
-    #     parameters={
-    #         "year": "2025",
-    #         "db_creds_name": "local_test_postgres_credentials",
-    #         "db_type": "postgres",
-    #     },
-    #     cron="0 0 * * *",
-    # )
-    main_pipeline.from_source(
-        source="https://github.com/analyst-susiair/prefect-test.git",
-        entrypoint="pipeline.py:main_pipeline",
-    ).deploy(  # type: ignore[no-untyped-call]
-        name="deployed_test_afl_pipeline",
-        tags=["afl", "etl", "test"],
-        work_pool_name="main_workpool",
-        # push=False,
-        # image="ghcr.io/your-docker-image:latest",
+    main_pipeline.serve(
+        name="test_afl_pipeline",
+        tags=["afl", "test"],
         parameters={
             "year": "2025",
             "db_creds_name": "local_test_postgres_credentials",
             "db_type": "postgres",
         },
         cron="0 0 * * *",
-        job_variables={
-            "pip_packages": [
-                "google-auth",
-                "gspread-asyncio",
-                "peewee>=3.17.9",
-                "psycopg2>=2.9.10",
-            ]
-        },
     )
+
+    # main_pipeline.deploy(
+    #     name="test_afl_pipeline",
+    #     tags=["afl", "test", "docker"],
+    #     parameters={
+    #         "year": "2025",
+    #         "db_creds_name": "local_test_postgres_credentials",
+    #         "db_type": "postgres",
+    #     },
+    #     # cron="0 0 * * *",
+    #     work_pool_name="main_workpool",
+    #     image=DockerImage(
+    #         name="afl_etl",
+    #         tag="latest",
+    #         dockerfile="Dockerfile",
+    #     ),
+    #     push=False,
+    #     build=False,
+    # )
+
+    # main_pipeline.from_source(
+    #     source="https://github.com/analyst-susiair/prefect-test.git",
+    #     entrypoint="pipeline.py:main_pipeline",
+    # ).deploy(  # type: ignore[no-untyped-call]
+    #     name="deployed_test_afl_pipeline",
+    #     tags=["afl", "etl", "test"],
+    #     work_pool_name="main_workpool",
+    #     # push=False,
+    #     # image="ghcr.io/your-docker-image:latest",
+    #     parameters={
+    #         "year": "2025",
+    #         "db_creds_name": "local_test_postgres_credentials",
+    #         "db_type": "postgres",
+    #     },
+    #     cron="0 0 * * *",
+    #     job_variables={
+    #         "pip_packages": [
+    #             "google-auth",
+    #             "gspread-asyncio",
+    #             "peewee>=3.17.9",
+    #             "psycopg2>=2.9.10",
+    #         ]
+    #     },
+    # )
     # (
     #     year="2025",
     #     db_creds_name="local_test_postgres_credentials",
