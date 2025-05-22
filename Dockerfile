@@ -11,11 +11,11 @@ WORKDIR /app
 # Copy your project files into the Docker image
 # COPY . .
 
+VOLUME /var/run/docker.sock:/var/run/docker.sock
 # RUN uv venv && \
 #     uv add psycopg2-binary
 
 RUN uv sync --locked
-
 # Install curl and uv
 # RUN apt-get update && apt-get install -y curl && \
 # 	curl -LsSf https://astral.sh/uv/install.sh | sh && \
