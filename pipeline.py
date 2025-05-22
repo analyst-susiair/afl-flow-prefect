@@ -7,14 +7,16 @@ from database.models import TestFlightLog
 from utils.db import db_comparison_data, truncate_db
 
 from prefect import flow, task
-from prefect.docker import DockerImage
+from prefect.variables import Variable
 # from prefect.logging import get_run_logger
 
 
 @task
 def setup_database(db_creds_name: str, db_type: Literal["postgres", "mysql"]):
     """Setup database connection"""
-    db = generate_db_instance(db_creds_name, db_type)
+    db_cred = Variable.get(db_creds_name)
+    TestFlightLog._meta.table_name = db_cred["table"]
+    db = generate_db_instance(db_cred, db_type)
     TestFlightLog.bind_database(db)
     return db
 
@@ -26,7 +28,7 @@ def extract_data(year: AFL_YEARS) -> List[Dict]:
 
 
 @task
-def get_db_info(year: int) -> Tuple[int, int]:
+def get_db_info(year: int) -> Tuple[int | None, int]:
     """Get database comparison data"""
     return db_comparison_data(year)
 
@@ -72,28 +74,31 @@ def main_pipeline(
     sheet_data = extract_data(year)
     sheet_data_last_id = sheet_data[-1]["id"]
     db_last_id, db_data_count = get_db_info(int(year))
+    print(f"Database last ID: {db_last_id}, Database record count: {db_data_count}")
 
     # Validate database state
     if db_last_id == 0:
         raise ValueError(f"Empty database for year {year}. Check connection.")
 
-    # Check for new data
-    if sheet_data_last_id <= db_last_id:
-        print(f"No new data to load for year {year}.")
-        return
+    if db_last_id is not None:
+        # Check for new data
+        if sheet_data_last_id <= db_last_id:
+            print(f"No new data to load for year {year}.")
+            return
 
-    # Filter and process new records
-    if sheet_data_last_id > db_last_id:
-        sheet_data = filter_new_records(sheet_data, db_last_id)
+        # Filter and process new records
+        if sheet_data_last_id > db_last_id:
+            sheet_data = filter_new_records(sheet_data, db_last_id)
 
-    # Handle data count mismatch
-    if sheet_data_last_id == db_last_id and len(sheet_data) != db_data_count:
-        truncate_db(int(year))
+        # Handle data count mismatch
+        if sheet_data_last_id == db_last_id and len(sheet_data) != db_data_count:
+            truncate_db(int(year))
 
     # Transform and load
     transformed_data = transform_data(sheet_data, year)
     # print(transformed_data)
     load_data(transformed_data)
+    return
 
 
 if __name__ == "__main__":

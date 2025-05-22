@@ -7,11 +7,12 @@ from prefect.variables import Variable
 
 
 def generate_db_instance(
-    db_creds_name: str = "local_test_postgres_credentials",
+    # db_creds_name: str = "local_test_postgres_credentials",
+    db_creds: any,
     db_type: Literal["postgres", "mysql"] = "postgres",
 ) -> PostgresqlDatabase:
     # DATABASE_URL = "postgresql://postgres:eLtRvifcb9CtfTq6Azd7WCgfdZB0f0wkwXxGPdGBabYT1qDyTgM3rRWvapnsyWnJ@192.168.0.170:5431/afl-dev"
-    db_creds = Variable.get(db_creds_name)
+    # db_creds = Variable.get(db_creds_name)
 
     if db_type == "postgres":
         db = PostgresqlDatabase(

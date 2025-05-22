@@ -1,4 +1,5 @@
 from peewee import Model, CharField, IntegerField, FloatField, AutoField
+from prefect.variables import Variable
 
 
 class BaseModel(Model):
