@@ -113,6 +113,17 @@ if __name__ == "__main__":
         cron="0 0 * * *",
     )
 
+    main_pipeline.serve(
+        name="test_afl_pipeline",
+        tags=["afl", "test"],
+        parameters={
+            "year": "2016",
+            "db_creds_name": "local_test_postgres_credentials",
+            "db_type": "postgres",
+        },
+        cron="0 0 * * *",
+    )
+
     # main_pipeline.deploy(
     #     name="test_afl_pipeline",
     #     tags=["afl", "test", "docker"],
