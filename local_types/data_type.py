@@ -39,3 +39,44 @@ class AflDataType(TypedDict):
     month_filter: str
     admin: str
     timestamp: Optional[str]
+    contract: Optional[str]
+
+
+class RawAflDbType(TypedDict):
+    id: int
+    year: int
+    fl_serial: int
+    ac: str
+    date: str
+    pic: str
+    sic: Optional[str]
+    from_: str
+    to: str
+    dep: str
+    arr: str
+    customer: str
+    block_off_utc: Optional[str]
+    take_off_utc: Optional[str]
+    land_utc: Optional[str]
+    block_on_utc: Optional[str]
+    adult: Optional[int]
+    child: Optional[int]
+    infant: Optional[int]
+    crew: Optional[int]
+    pax: Optional[int]
+    kg: Optional[float]
+    start: float
+    end: float
+    hours: float
+    landings: int
+    eng1_cyc: int
+    eng2_cyc: Optional[int]
+    fuel_depart: int
+    fuel_return: int
+    refuelling: Optional[int]
+    base: Optional[str]
+    area: Optional[str]
+    kpa: Optional[str]
+    ac_type: Optional[str]
+    admin: Optional[str]
+    created_at: Optional[str]
