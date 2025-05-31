@@ -6,7 +6,9 @@ import gspread_asyncio
 from prefect_gcp import GcpCredentials
 from prefect.variables import Variable
 
-AFL_YEARS = Literal["2025", "2024", "2023", "2022", "2021", "2018", "2017", "2016"]
+AFL_YEARS = Literal[
+    "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016"
+]
 
 
 class AFLMetadata(TypedDict):
@@ -24,8 +26,6 @@ AFL_METADATA_TYPES = dict[str, AFLMetadata]
 
 
 def __get_creds__():
-    # creds = Credentials.from_service_account_file("./afl.json")
-
     gcp_credentials_block = GcpCredentials.load("analyst-gcp")
     creds = gcp_credentials_block.get_credentials_from_service_account()
 
