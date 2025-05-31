@@ -1,5 +1,4 @@
 from peewee import Model, CharField, IntegerField, FloatField, AutoField
-from prefect.variables import Variable
 
 
 class BaseModel(Model):
@@ -11,6 +10,7 @@ class BaseModel(Model):
 class TestFlightLog(BaseModel):
     class Meta:
         table_name = "update_test_raw_flight_log"
+        schema = "public"
 
     id = AutoField(primary_key=True)
     year = IntegerField(index=True)
