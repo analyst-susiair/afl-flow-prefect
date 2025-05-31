@@ -4,6 +4,7 @@ from etl.extract import extract_afl_from_sheet, AFL_YEARS
 from etl.transform import transform_sheet_data
 from etl.load import load_to_db
 from database.models import TestFlightLog
+from local_types.data_type import AflDataType, RawAflDbType
 from utils.db import db_comparison_data, truncate_db
 
 from prefect import flow, task
@@ -16,13 +17,14 @@ def setup_database(db_creds_name: str, db_type: Literal["postgres", "mysql"]):
     """Setup database connection"""
     db_cred = Variable.get(db_creds_name)
     TestFlightLog._meta.table_name = db_cred["table"]
+    TestFlightLog._meta.schema = db_cred["schema"]
     db = generate_db_instance(db_cred, db_type)
     TestFlightLog.bind_database(db)
     return db
 
 
 @task
-def extract_data(year: AFL_YEARS) -> List[Dict]:
+def extract_data(year: AFL_YEARS):
     """Extract data from sheet"""
     return extract_afl_from_sheet(year)
 
@@ -44,18 +46,14 @@ def filter_new_records(sheet_data: List[Dict], db_last_id: int) -> List[Dict]:
 
 
 @task(log_prints=True)
-def transform_data(sheet_data: List[Dict], year: AFL_YEARS) -> List[Dict]:
+def transform_data(sheet_data: List[AflDataType], year: AFL_YEARS):
     """Transform sheet data"""
-    # logger = get_run_logger()
-    # logger.debug(sheet_data[0:10])
-    # print(sheet_data[0:10])
     return transform_sheet_data(sheet_data, year)
 
 
 @task(log_prints=True)
-def load_data(sheet_data: List[Dict]) -> None:
+def load_data(sheet_data: List[RawAflDbType]) -> None:
     """Load data to database"""
-    # print(sheet_data[0:5])
     load_to_db(sheet_data)
 
 
@@ -72,6 +70,10 @@ def main_pipeline(
 
     # Extract data
     sheet_data = extract_data(year)
+
+    if not sheet_data:
+        raise ValueError(f"No sheet data found for year {year}")
+
     sheet_data_last_id = sheet_data[-1]["id"]
     db_last_id, db_data_count = get_db_info(int(year))
     print(f"Database last ID: {db_last_id}, Database record count: {db_data_count}")
@@ -103,25 +105,14 @@ def main_pipeline(
 
 if __name__ == "__main__":
     main_pipeline.serve(
-        name="test_afl_pipeline",
-        tags=["afl", "test"],
+        name="afl_pipeline",
+        tags=["afl"],
         parameters={
             "year": "2025",
-            "db_creds_name": "local_test_postgres_credentials",
+            "db_creds_name": "local_afl_postgres",
             "db_type": "postgres",
         },
-        cron="0 0 * * *",
-    )
-
-    main_pipeline.serve(
-        name="test_afl_pipeline",
-        tags=["afl", "test"],
-        parameters={
-            "year": "2016",
-            "db_creds_name": "local_test_postgres_credentials",
-            "db_type": "postgres",
-        },
-        cron="0 0 * * *",
+        # cron="0 0 * * *",
     )
 
     # main_pipeline.deploy(
