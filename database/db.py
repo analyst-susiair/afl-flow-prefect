@@ -1,5 +1,5 @@
 from typing import Literal
-from peewee import PostgresqlDatabase, MySQLDatabase
+from peewee import PostgresqlDatabase, MySQLDatabase, Model
 from prefect.variables import Variable
 
 
@@ -8,7 +8,7 @@ from prefect.variables import Variable
 
 def generate_db_instance(
     # db_creds_name: str = "local_test_postgres_credentials",
-    db_creds: any,
+    db_creds,
     db_type: Literal["postgres", "mysql"] = "postgres",
 ) -> PostgresqlDatabase:
     # DATABASE_URL = "postgresql://postgres:eLtRvifcb9CtfTq6Azd7WCgfdZB0f0wkwXxGPdGBabYT1qDyTgM3rRWvapnsyWnJ@192.168.0.170:5431/afl-dev"
@@ -33,6 +33,12 @@ def generate_db_instance(
 
     # db.connect()
     return db
+
+
+class BaseModel(Model):
+    @classmethod
+    def bind_database(cls, db_instance):
+        cls._meta.database = db_instance
 
 
 # db = postgres_db()

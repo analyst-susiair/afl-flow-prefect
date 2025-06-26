@@ -1,22 +1,19 @@
-from peewee import Model, CharField, IntegerField, FloatField, AutoField
+from peewee import CharField, IntegerField, FloatField, AutoField, DateField, TimeField
+
+from database.db import BaseModel
 
 
-class BaseModel(Model):
-    @classmethod
-    def bind_database(cls, db_instance):
-        cls._meta.database = db_instance
-
-
-class TestFlightLog(BaseModel):
+class RawFlightLog(BaseModel):
     class Meta:
-        table_name = "update_test_raw_flight_log"
+        # table_name = "raw_flight_log"
+        table_name = "raw_flight_log"
         schema = "public"
 
     id = AutoField(primary_key=True)
     year = IntegerField(index=True)
     fl_serial = CharField(index=True)
     ac = CharField()
-    date = CharField(index=True)
+    date = DateField()
     dep = CharField()
     arr = CharField()
     pic = CharField()
@@ -24,10 +21,10 @@ class TestFlightLog(BaseModel):
     from_ = CharField(column_name="from", null=True)  # Note the column name override
     to = CharField(null=True)
     customer = CharField()
-    block_off_utc = CharField(null=True)
-    take_off_utc = CharField(null=True)
-    land_utc = CharField(null=True)
-    block_on_utc = CharField(null=True)
+    block_off_utc = TimeField(null=True)
+    take_off_utc = TimeField(null=True)
+    land_utc = TimeField(null=True)
+    block_on_utc = TimeField(null=True)
     adult = IntegerField(null=True)
     child = IntegerField(null=True)
     infant = IntegerField(null=True)
