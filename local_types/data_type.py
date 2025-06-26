@@ -45,7 +45,7 @@ class AflDataType(TypedDict):
 class RawAflDbType(TypedDict):
     id: int
     year: int
-    fl_serial: int
+    fl_serial: str
     ac: str
     date: str
     pic: str
@@ -79,4 +79,40 @@ class RawAflDbType(TypedDict):
     kpa: Optional[str]
     ac_type: Optional[str]
     admin: Optional[str]
+    created_at: Optional[str]
+
+
+class NewAflDbType(TypedDict):
+    id: int
+    year: int
+    fl_serial: int
+    aircraft_id: int
+    date: str
+    pic_id: int
+    sic_id: Optional[int]
+    origin_id: int
+    destination_id: int
+    customer_id: int
+    block_off_utc: Optional[str]
+    take_off_utc: Optional[str]
+    land_utc: Optional[str]
+    block_on_utc: Optional[str]
+    adult: Optional[int]
+    child: Optional[int]
+    infant: Optional[int]
+    crew: Optional[int]
+    pax: Optional[int]
+    kg: Optional[float]
+    start: float
+    end: float
+    hours: float
+    landings: int
+    eng1_cyc: int
+    eng2_cyc: Optional[int]
+    fuel_depart: int
+    fuel_return: int
+    refuelling: Optional[int]
+    base_id: Optional[int]
+    kpa_id: Optional[int]
+    admin_id: Optional[int]
     created_at: Optional[str]

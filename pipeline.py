@@ -3,7 +3,9 @@ from database.db import generate_db_instance
 from etl.extract import extract_afl_from_sheet, AFL_YEARS
 from etl.transform import transform_sheet_data
 from etl.load import load_to_db
-from database.models import TestFlightLog
+from database.models.raw import RawFlightLog
+
+# from database.models.analytics
 from local_types.data_type import AflDataType, RawAflDbType
 from utils.db import db_comparison_data, truncate_db
 
@@ -13,13 +15,16 @@ from prefect.variables import Variable
 
 
 @task
-def setup_database(db_creds_name: str, db_type: Literal["postgres", "mysql"]):
-    """Setup database connection"""
+def setup_database(
+    db_creds_name: str,
+    db_type: Literal["postgres", "mysql"],
+):
+    """Setup database"""
     db_cred = Variable.get(db_creds_name)
-    TestFlightLog._meta.table_name = db_cred["table"]
-    TestFlightLog._meta.schema = db_cred["schema"]
+    RawFlightLog._meta.table_name = db_cred["table"]
+    RawFlightLog._meta.schema = db_cred["schema"]
     db = generate_db_instance(db_cred, db_type)
-    TestFlightLog.bind_database(db)
+    RawFlightLog.bind_database(db)
     return db
 
 
@@ -59,7 +64,10 @@ def load_data(sheet_data: List[RawAflDbType]) -> None:
 
 @flow(name="AFL ETL Pipeline", log_prints=True, retries=3, retry_delay_seconds=5)
 def main_pipeline(
-    year: AFL_YEARS, db_creds_name: str, db_type: Literal["postgres", "mysql"]
+    year: AFL_YEARS,
+    db_creds_name: str,
+    db_type: Literal["postgres", "mysql"],
+    truncate: bool = False,
 ) -> None:
     """
     Main ETL pipeline for processing flight log data.
@@ -74,33 +82,46 @@ def main_pipeline(
     if not sheet_data:
         raise ValueError(f"No sheet data found for year {year}")
 
-    sheet_data_last_id = sheet_data[-1]["id"]
-    db_last_id, db_data_count = get_db_info(int(year))
-    print(f"Database last ID: {db_last_id}, Database record count: {db_data_count}")
+    if truncate:
+        truncate_db(int(year))
+        print(f"Database truncated for year {year}.")
+    else:
+        sheet_data_last_id = sheet_data[-1]["id"]
+        db_last_id, db_data_count = get_db_info(int(year))
+        print(f"Database last ID: {db_last_id}, Database record count: {db_data_count}")
 
-    # Validate database state
-    if db_last_id == 0:
-        raise ValueError(f"Empty database for year {year}. Check connection.")
+        # Validate database state
+        if db_last_id == 0:
+            raise ValueError(f"Empty database for year {year}. Check connection.")
 
-    if db_last_id is not None:
-        # Check for new data
-        if sheet_data_last_id <= db_last_id:
-            print(f"No new data to load for year {year}.")
-            return
+        if db_last_id is not None:
+            # Check for new data
+            if sheet_data_last_id <= db_last_id:
+                print(f"No new data to load for year {year}.")
+                return
 
-        # Filter and process new records
-        if sheet_data_last_id > db_last_id:
-            sheet_data = filter_new_records(sheet_data, db_last_id)
+            # Filter and process new records
+            if sheet_data_last_id > db_last_id:
+                sheet_data = filter_new_records(sheet_data, db_last_id)
 
-        # Handle data count mismatch
-        if sheet_data_last_id == db_last_id and len(sheet_data) != db_data_count:
-            truncate_db(int(year))
+            # Handle data count mismatch
+            if sheet_data_last_id == db_last_id and len(sheet_data) != db_data_count:
+                truncate_db(int(year))
 
-    # Transform and load
+        # Transform and load
     transformed_data = transform_data(sheet_data, year)
     # print(transformed_data)
     load_data(transformed_data)
     return
+
+
+# # LOCAL ONLY
+# if __name__ == "__main__":
+#     main_pipeline(
+#         year="2025",
+#         db_creds_name="local_afl_postgres",
+#         db_type="postgres",
+#     )
 
 
 if __name__ == "__main__":
@@ -115,51 +136,51 @@ if __name__ == "__main__":
         # cron="0 0 * * *",
     )
 
-    # main_pipeline.deploy(
-    #     name="test_afl_pipeline",
-    #     tags=["afl", "test", "docker"],
-    #     parameters={
-    #         "year": "2025",
-    #         "db_creds_name": "local_test_postgres_credentials",
-    #         "db_type": "postgres",
-    #     },
-    #     # cron="0 0 * * *",
-    #     work_pool_name="main_workpool",
-    #     image=DockerImage(
-    #         name="afl_etl",
-    #         tag="latest",
-    #         dockerfile="Dockerfile",
-    #     ),
-    #     push=False,
-    #     build=False,
-    # )
+# main_pipeline.deploy(
+#     name="test_afl_pipeline",
+#     tags=["afl", "test", "docker"],
+#     parameters={
+#         "year": "2025",
+#         "db_creds_name": "local_test_postgres_credentials",
+#         "db_type": "postgres",
+#     },
+#     # cron="0 0 * * *",
+#     work_pool_name="main_workpool",
+#     image=DockerImage(
+#         name="afl_etl",
+#         tag="latest",
+#         dockerfile="Dockerfile",
+#     ),
+#     push=False,
+#     build=False,
+# )
 
-    # main_pipeline.from_source(
-    #     source="https://github.com/analyst-susiair/prefect-test.git",
-    #     entrypoint="pipeline.py:main_pipeline",
-    # ).deploy(  # type: ignore[no-untyped-call]
-    #     name="deployed_test_afl_pipeline",
-    #     tags=["afl", "etl", "test"],
-    #     work_pool_name="main_workpool",
-    #     # push=False,
-    #     # image="ghcr.io/your-docker-image:latest",
-    #     parameters={
-    #         "year": "2025",
-    #         "db_creds_name": "local_test_postgres_credentials",
-    #         "db_type": "postgres",
-    #     },
-    #     cron="0 0 * * *",
-    #     job_variables={
-    #         "pip_packages": [
-    #             "google-auth",
-    #             "gspread-asyncio",
-    #             "peewee>=3.17.9",
-    #             "psycopg2>=2.9.10",
-    #         ]
-    #     },
-    # )
-    # (
-    #     year="2025",
-    #     db_creds_name="local_test_postgres_credentials",
-    #     db_type="postgres",
-    # )
+# main_pipeline.from_source(
+#     source="https://github.com/analyst-susiair/prefect-test.git",
+#     entrypoint="pipeline.py:main_pipeline",
+# ).deploy(  # type: ignore[no-untyped-call]
+#     name="deployed_test_afl_pipeline",
+#     tags=["afl", "etl", "test"],
+#     work_pool_name="main_workpool",
+#     # push=False,
+#     # image="ghcr.io/your-docker-image:latest",
+#     parameters={
+#         "year": "2025",
+#         "db_creds_name": "local_test_postgres_credentials",
+#         "db_type": "postgres",
+#     },
+#     cron="0 0 * * *",
+#     job_variables={
+#         "pip_packages": [
+#             "google-auth",
+#             "gspread-asyncio",
+#             "peewee>=3.17.9",
+#             "psycopg2>=2.9.10",
+#         ]
+#     },
+# )
+# (
+#     year="2025",
+#     db_creds_name="local_test_postgres_credentials",
+#     db_type="postgres",
+# )

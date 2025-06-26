@@ -5,10 +5,10 @@ from sheets import AFL_YEARS
 # Constants
 OPTIONAL_FIELDS: tuple[str, ...] = (
     "sic",
-    "block_off",
+    "block_off_utc",
     "take_off_utc",
     "land_utc",
-    "block_on",
+    "block_on_utc",
     "kpa",
     "timestamp",
     "adult",
@@ -60,7 +60,9 @@ def transform_sheet_data(
         transformed_item: RawAflDbType = {
             "id": data["id"],
             "year": int(year),
-            "fl_serial": data["fl_serial"],
+            "fl_serial": str(data["fl_serial"])
+            if len(str(data["fl_serial"])) >= 6
+            else f"{data['fl_serial']:06}",
             "ac": data["ac"],
             "date": data["date"],
             "pic": data["pic"],
