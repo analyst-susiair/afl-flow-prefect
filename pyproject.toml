@@ -11,9 +11,16 @@ dependencies = [
     "prefect-gcp>=0.6.7",
     "peewee>=3.17.9",
     "psycopg2-binary>=2.9.10",
+    "polars>=1.30.0",
+    "pyarrow>=20.0.0",
+    "connectorx>=0.4.3",
 ]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=6.29.5",
     "types-peewee>=3.17.9.20250401",
 ]
+
+[tool.setuptools]
+packages = ["database"]
