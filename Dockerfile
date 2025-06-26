@@ -1,6 +1,8 @@
 # FROM ghcr.io/astral-sh/uv:latest
-FROM python:3.12-slim-bookworm
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# FROM python:3.12-slim-bookworm
+# COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 RUN apt-get update && apt-get install -y libpq-dev
 
@@ -15,13 +17,8 @@ VOLUME /var/run/docker.sock:/var/run/docker.sock
 # RUN uv venv && \
 #     uv add psycopg2-binary
 
-RUN uv sync --locked
-# Install curl and uv
-# RUN apt-get update && apt-get install -y curl && \
-# 	curl -LsSf https://astral.sh/uv/install.sh | sh && \
-# 	. $HOME/.local/bin/env && \
-# 	/root/.cargo/bin/uv venv && \
-# 	. .venv/bin/activate
+RUN uv sync --locked --no-cache --no-install-project --no-dev
+
 
 # # Install dependencies from pyproject.toml
 # RUN /root/.cargo/bin/uv uv sync

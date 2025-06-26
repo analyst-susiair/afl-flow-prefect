@@ -2,3 +2,5 @@
 .vscode
 __pycache__
 requirements.txt
+.mypy_cache
+notebooks/
