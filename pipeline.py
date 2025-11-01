@@ -13,6 +13,8 @@ from prefect import flow, task
 from prefect.variables import Variable
 # from prefect.logging import get_run_logger
 
+import os
+
 
 @task
 def setup_database(
@@ -116,71 +118,36 @@ def main_pipeline(
 
 
 # # LOCAL ONLY
-# if __name__ == "__main__":
+# rerun_years = [
+#     # "2016",
+#     # "2017",
+#     # "2018",
+#     # "2019",
+#     "2020",
+#     "2021",
+#     "2022",
+#     "2023",
+#     "2024",
+# ]
+
+# for year in rerun_years:
 #     main_pipeline(
-#         year="2025",
+#         year=year,
 #         db_creds_name="local_afl_postgres",
 #         db_type="postgres",
+#         truncate=True,
 #     )
 
 
 if __name__ == "__main__":
+    DEPLOY_NAME = os.getenv("DEPLOY_NAME", "afl_pipeline")
     main_pipeline.serve(
-        name="afl_pipeline",
+        name=DEPLOY_NAME,
         tags=["afl"],
-        parameters={
-            "year": "2025",
-            "db_creds_name": "local_afl_postgres",
-            "db_type": "postgres",
-        },
+        # parameters={
+        #     "year": "2025",
+        #     "db_creds_name": "local_afl_postgres",
+        #     "db_type": "postgres",
+        # },
         # cron="0 0 * * *",
     )
-
-# main_pipeline.deploy(
-#     name="test_afl_pipeline",
-#     tags=["afl", "test", "docker"],
-#     parameters={
-#         "year": "2025",
-#         "db_creds_name": "local_test_postgres_credentials",
-#         "db_type": "postgres",
-#     },
-#     # cron="0 0 * * *",
-#     work_pool_name="main_workpool",
-#     image=DockerImage(
-#         name="afl_etl",
-#         tag="latest",
-#         dockerfile="Dockerfile",
-#     ),
-#     push=False,
-#     build=False,
-# )
-
-# main_pipeline.from_source(
-#     source="https://github.com/analyst-susiair/prefect-test.git",
-#     entrypoint="pipeline.py:main_pipeline",
-# ).deploy(  # type: ignore[no-untyped-call]
-#     name="deployed_test_afl_pipeline",
-#     tags=["afl", "etl", "test"],
-#     work_pool_name="main_workpool",
-#     # push=False,
-#     # image="ghcr.io/your-docker-image:latest",
-#     parameters={
-#         "year": "2025",
-#         "db_creds_name": "local_test_postgres_credentials",
-#         "db_type": "postgres",
-#     },
-#     cron="0 0 * * *",
-#     job_variables={
-#         "pip_packages": [
-#             "google-auth",
-#             "gspread-asyncio",
-#             "peewee>=3.17.9",
-#             "psycopg2>=2.9.10",
-#         ]
-#     },
-# )
-# (
-#     year="2025",
-#     db_creds_name="local_test_postgres_credentials",
-#     db_type="postgres",
-# )
