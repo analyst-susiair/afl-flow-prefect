@@ -1,0 +1,16 @@
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # environment:
+    #   - PREFECT_API_URL=http://prefect-server:4200/api
+    networks:
+      - prefect_net
+    volumes:
+      - .:/app
+
+networks:
+  prefect_net:
+    external: true
+    name: prefect_shared
