@@ -66,7 +66,7 @@ def load_data(sheet_data: List[RawAflDbType]) -> None:
 
 @flow(name="AFL ETL Pipeline", log_prints=True, retries=3, retry_delay_seconds=5)
 def main_pipeline(
-    year: AFL_YEARS,
+    year: str,
     db_creds_name: str,
     db_type: Literal["postgres", "mysql"],
     truncate: bool = False,
